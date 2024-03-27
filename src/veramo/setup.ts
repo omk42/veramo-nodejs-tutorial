@@ -7,6 +7,8 @@ import { DIDManager } from '@veramo/did-manager'
 // Ethr did identity provider
 import { EthrDIDProvider } from '@veramo/did-provider-ethr'
 
+import { KeyDIDProvider } from '@veramo/did-provider-key'
+
 // Web did identity provider
 import { WebDIDProvider } from '@veramo/did-provider-web'
 
@@ -26,7 +28,7 @@ import { getResolver as ethrDidResolver } from 'ethr-did-resolver'
 import { getResolver as webDidResolver } from 'web-did-resolver'
 
 // Storage plugin using TypeOrm
-import { Entities, KeyStore, DIDStore, IDataStoreORM, PrivateKeyStore, migrations } from '@veramo/data-store'
+import { Entities, KeyStore, DIDStore, IDataStoreORM, PrivateKeyStore, migrations, DataStore } from '@veramo/data-store'
 
 // TypeORM is installed with `@veramo/data-store`
 import { DataSource } from 'typeorm'
@@ -59,14 +61,26 @@ const KMS_SECRET_KEY =
           local: new KeyManagementSystem(new PrivateKeyStore(dbConnection, new SecretBox(KMS_SECRET_KEY))),
         },
       }),
+      // new DIDManager({
+      //   store: new DIDStore(dbConnection),
+      //   defaultProvider: 'did:ethr:goerli',
+      //   providers: {
+      //     'did:ethr:goerli': new EthrDIDProvider({
+      //       defaultKms: 'local',
+      //       network: 'goerli',
+      //       rpcUrl: 'https://goerli.infura.io/v3/' + INFURA_PROJECT_ID,
+      //     }),
+      //     'did:web': new WebDIDProvider({
+      //       defaultKms: 'local',
+      //     }),
+      //   },
+      // }),
       new DIDManager({
         store: new DIDStore(dbConnection),
-        defaultProvider: 'did:ethr:goerli',
+        defaultProvider: 'did:web',
         providers: {
-          'did:ethr:goerli': new EthrDIDProvider({
-            defaultKms: 'local',
-            network: 'goerli',
-            rpcUrl: 'https://goerli.infura.io/v3/' + INFURA_PROJECT_ID,
+          'did:key': new KeyDIDProvider({
+            defaultKms: 'local'
           }),
           'did:web': new WebDIDProvider({
             defaultKms: 'local',
@@ -80,5 +94,6 @@ const KMS_SECRET_KEY =
         }),
       }),
       new CredentialPlugin(),
+      new DataStore(dbConnection),
     ],
   })
